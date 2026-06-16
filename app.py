@@ -115,17 +115,31 @@ def save_to_db(password, score, level):
     )
     conn.commit()
 
-# ===================== PASSWORD GENERATOR =====================
-def generate_password():
-    words = ["neo", "matrix", "cyber", "dark", "root", "zero", "ghost", "signal"]
-    return random.choice(words) + str(random.randint(10, 99))
+def generate_password(length=12):
+    if length < 8:
+        length = 8
 
-# ===================== HEADER =====================
-st.markdown("<h1>SOC TERMINAL INTERFACE</h1>", unsafe_allow_html=True)
+    uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    lowercase = "abcdefghijklmnopqrstuvwxyz"
+    digits = "0123456789"
+    special = "!@#$%^&*()-_=+[]{};:,.?/"
 
-st.markdown("System: Password Security Analyzer")
-st.markdown("---")
+    # guarantee at least one of each
+    password = [
+        random.choice(uppercase),
+        random.choice(lowercase),
+        random.choice(digits),
+        random.choice(special)
+    ]
 
+    all_chars = uppercase + lowercase + digits + special
+
+    for _ in range(length - 4):
+        password.append(random.choice(all_chars))
+
+    random.shuffle(password)
+
+    return "".join(password)
 # ===================== INPUT =====================
 password = st.text_input("ENTER TARGET PASSWORD", type="password")
 
