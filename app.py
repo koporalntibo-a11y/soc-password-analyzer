@@ -4,7 +4,11 @@ import re
 import random
 
 # ===================== PAGE CONFIG =====================
-st.set_page_config(page_title="SOC Password Analyzer", layout="centered")
+st.set_page_config(
+    page_title="SOC Hacker Terminal",
+    page_icon="🛡",
+    layout="centered"
+)
 
 # ===================== DATABASE =====================
 conn = sqlite3.connect("passwords.db", check_same_thread=False)
@@ -50,7 +54,7 @@ def analyze_password(password):
 
     if password.lower() in breached_passwords:
         score = 0
-        issues.append("BREACHED PASSWORD DETECTED")
+        issues.append("BREACHED PASSWORD")
 
     if score >= 4:
         level = "LOW RISK"
@@ -61,61 +65,78 @@ def analyze_password(password):
 
     return score, level, issues
 
-# ===================== SAVE TO DB =====================
+# ===================== SAVE =====================
 def save_to_db(password, score, level):
     cursor.execute(
-        "INSERT INTO password_logs (password, score, risk_level) VALUES (?, ?, ?)",
+        "INSERT INTO password_logs VALUES (NULL, ?, ?, ?)",
         (password, score, level)
     )
     conn.commit()
 
-# ===================== PASSWORD GENERATOR =====================
+# ===================== GENERATOR =====================
 def generate_password():
-    words = ["sun", "blue", "river", "code", "lion", "cloud", "star", "tech"]
+    words = ["neo", "matrix", "cyber", "dark", "ghost", "zero", "root", "hack"]
     return random.choice(words) + str(random.randint(10, 99))
 
-# ===================== UI =====================
+# ===================== HACKER HEADER =====================
+st.markdown("""
+    <h1 style='text-align: center; color: #00ff9f;'>
+    🛡 SOC HACKER TERMINAL
+    </h1>
+    <h4 style='text-align: center; color: #39ff14;'>
+    Password Security & Threat Analyzer
+    </h4>
+    <hr style='border: 1px solid #00ff9f;'>
+""", unsafe_allow_html=True)
 
-st.title("🛡 SOC Password Security Analyzer")
-st.write("Cybersecurity tool for password strength and breach detection")
-
-password = st.text_input("Enter Password", type="password")
+# ===================== INPUT =====================
+password = st.text_input("💀 Enter Target Password", type="password")
 
 col1, col2 = st.columns(2)
 
-# Generate password
+# ===================== GENERATE =====================
 with col1:
-    if st.button("Generate Password"):
-        st.session_state["generated"] = generate_password()
+    if st.button("🎲 Generate Password"):
+        st.session_state["gen"] = generate_password()
 
-if "generated" in st.session_state:
-    st.success(f"Generated Password: {st.session_state['generated']}")
+if "gen" in st.session_state:
+    st.success(f"🔐 Generated: {st.session_state['gen']}")
 
-# Analyze password
+# ===================== ANALYZE =====================
 with col2:
-    if st.button("Analyze Password"):
+    if st.button("🔍 Run SOC Scan"):
         if not password:
-            st.error("Please enter a password")
+            st.error("No input detected")
         else:
             score, level, issues = analyze_password(password)
-
             save_to_db(password, score, level)
 
-            st.subheader("Analysis Result")
-            st.write("Score:", score, "/ 5")
-            st.write("Risk Level:", level)
+            # COLORS
+            if level == "LOW RISK":
+                color = "🟢"
+            elif level == "MEDIUM RISK":
+                color = "🟡"
+            else:
+                color = "🔴"
+
+            st.markdown(f"""
+            ## 📡 SCAN RESULTS
+            - Password: `{password}`
+            - Score: **{score}/5**
+            - Risk Level: {color} **{level}**
+            """)
 
             if issues:
-                st.warning("Issues Found:")
+                st.markdown("### ⚠ Issues Detected")
                 for i in issues:
                     st.write("•", i)
 
             if password.lower() in breached_passwords:
-                st.error("🚨 Password found in breached database!")
+                st.error("🚨 COMPROMISED PASSWORD DETECTED (SIMULATED BREACH DB)")
 
 # ===================== ANALYTICS =====================
-st.divider()
-st.subheader("📊 SOC Analytics Dashboard")
+st.markdown("---")
+st.markdown("## 📊 SOC Intelligence Dashboard")
 
 cursor.execute("SELECT risk_level FROM password_logs")
 data = cursor.fetchall()
@@ -124,10 +145,16 @@ low = sum(1 for d in data if d[0] == "LOW RISK")
 medium = sum(1 for d in data if d[0] == "MEDIUM RISK")
 high = sum(1 for d in data if d[0] == "HIGH RISK")
 
-st.write("Low Risk:", low)
-st.write("Medium Risk:", medium)
-st.write("High Risk:", high)
+st.markdown(f"""
+🟢 Low Risk: **{low}**  
+🟡 Medium Risk: **{medium}**  
+🔴 High Risk: **{high}**
+""")
 
 # ===================== FOOTER =====================
-st.divider()
-st.caption("SOC Password Analyzer | Developed by SM NTIBO")
+st.markdown("""
+<hr style='border:1px solid #00ff9f'>
+<p style='text-align:center; color:#00ff9f'>
+SOC Security Terminal | Developed by SM NTIBO
+</p>
+""", unsafe_allow_html=True)
